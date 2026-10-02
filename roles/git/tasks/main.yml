@@ -1,0 +1,16 @@
+- name: Install git
+  become: true
+  community.general.pacman:
+    name: git
+    state: present
+
+# Global scope goes to ~/.config/git/config (Omarchy's file) while ~/.gitconfig
+# does not exist, so only the listed keys are managed, the rest is kept as is
+- name: Configure git
+  community.general.git_config:
+    scope: global
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop: "{{ {'user.name': git_user_name, 'user.email': git_user_email} | combine(git_config) | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"

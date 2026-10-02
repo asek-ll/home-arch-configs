@@ -1,0 +1,6 @@
+---
+git_user_name: Denis Blokhin
+git_user_email: sopplet@gmail.com
+
+# Extra global settings, e.g. {"core.autocrlf": "input"}
+git_config: {}

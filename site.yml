@@ -3,6 +3,7 @@
   roles:
     - packages
     - fish
+    - git
     - nvim
     - services
     - omarchy
