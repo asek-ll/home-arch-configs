@@ -1,0 +1,55 @@
+# Omarchy's shell only blanks displays as part of locking, so hypridle
+# is used purely to turn displays off after inactivity, without locking.
+- name: Install hypridle
+  become: true
+  community.general.pacman:
+    name: hypridle
+    state: present
+  register: omarchy_hypridle_pkg
+
+- name: Ensure hypr config directory exists
+  ansible.builtin.file:
+    path: "{{ omarchy_config_dir }}/hypr"
+    state: directory
+    mode: "0755"
+
+- name: Configure hypridle (display off only)
+  ansible.builtin.copy:
+    dest: "{{ omarchy_config_dir }}/hypr/hypridle.conf"
+    mode: "0644"
+    content: |
+      # Managed by Ansible - do not edit
+      general {
+          ignore_dbus_inhibit = false
+      }
+
+      # Turn displays off, unless the Omarchy "Stay Awake" toggle is on
+      # (it is not a Wayland inhibitor, only a state file read by the shell)
+      listener {
+          timeout = {{ omarchy_screen_off_timeout }}
+          on-timeout = [ -f "$HOME/.local/state/omarchy/indicators/stay-awake" ] || omarchy-brightness-display off
+          on-resume = omarchy-brightness-display on
+      }
+  notify: Restart hypridle
+
+# hypridle.service ships with the package and is bound to graphical-session.target (uwsm)
+- name: Enable and start hypridle user service
+  ansible.builtin.systemd_service:
+    name: hypridle.service
+    scope: user
+    enabled: true
+    state: started
+  # in check mode the unit does not exist until the package is really installed
+  when: not (ansible_check_mode and omarchy_hypridle_pkg is changed)
+
+- name: Read Omarchy shell config
+  ansible.builtin.slurp:
+    src: "{{ omarchy_config_dir }}/omarchy/shell.json"
+  register: omarchy_shell_config
+
+# Only the idle section is managed, the rest (bar layout etc.) is kept as is
+- name: Set Omarchy idle timings
+  ansible.builtin.copy:
+    dest: "{{ omarchy_config_dir }}/omarchy/shell.json"
+    mode: "0644"
+    content: "{{ omarchy_shell_config.content | b64decode | from_json | combine({'idle': omarchy_idle}, recursive=true) | to_nice_json(indent=2, ensure_ascii=false) }}\n"

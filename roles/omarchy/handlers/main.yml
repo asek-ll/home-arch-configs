@@ -1,0 +1,6 @@
+- name: Restart hypridle
+  ansible.builtin.systemd_service:
+    name: hypridle.service
+    scope: user
+    state: restarted
+  when: not (ansible_check_mode and omarchy_hypridle_pkg is changed)

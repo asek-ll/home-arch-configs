@@ -1,0 +1,11 @@
+---
+omarchy_config_dir: "{{ ansible_facts.user_dir }}/.config"
+
+# Seconds of inactivity before displays are turned off (hypridle)
+omarchy_screen_off_timeout: 150
+
+# Omarchy shell idle timings in seconds (~/.config/omarchy/shell.json).
+# Huge values effectively disable screensaver and auto-lock.
+omarchy_idle:
+  screensaver: 8640000
+  lock: 8640000
