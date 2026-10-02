@@ -1,2 +1,6 @@
 ---
 fish_path: /usr/bin/fish
+fish_editor: nvim
+fish_aliases:
+  vim: nvim
+fish_conf_dir: "{{ ansible_facts.user_dir }}/.config/fish/conf.d"

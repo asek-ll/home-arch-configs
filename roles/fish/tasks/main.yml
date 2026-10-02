@@ -1,7 +1,10 @@
-- name: Install fish
+- name: Install fish, zoxide and starship
   become: true
   community.general.pacman:
-    name: fish
+    name:
+      - fish
+      - zoxide
+      - starship
     state: present
 
 # fish package registers itself in /etc/shells on install, but ensure it anyway
@@ -17,3 +20,43 @@
   ansible.builtin.user:
     name: "{{ ansible_facts.user_id }}"
     shell: "{{ fish_path }}"
+
+- name: Ensure fish conf.d directory exists
+  ansible.builtin.file:
+    path: "{{ fish_conf_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Configure fish (greeting, EDITOR, aliases)
+  ansible.builtin.copy:
+    dest: "{{ fish_conf_dir }}/ansible.fish"
+    mode: "0644"
+    content: |
+      # Managed by Ansible - do not edit
+      set -g fish_greeting
+      set -gx EDITOR {{ fish_editor }}
+      set -gx VISUAL {{ fish_editor }}
+      # socket of ssh-agent user service (see services role)
+      if set -q XDG_RUNTIME_DIR
+          set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent.socket"
+      end
+      {% for name, cmd in fish_aliases.items() %}
+      alias {{ name }} {{ cmd | quote }}
+      {% endfor %}
+      if status is-interactive
+
+          if command -v zoxide &>/dev/null
+            zoxide init fish | source
+          end
+
+          if command -v starship &>/dev/null
+            starship init fish | source
+          end
+      end
+
+      set -gx SUDO_EDITOR "$EDITOR"
+      set -gx BAT_THEME ansi
+
+      set -g fish_history_max_size 32768
+      set -gx FZF_DEFAULT_OPTS '--cycle --layout=default --height=90% --preview-window=wrap --marker="*"'
+      set -gx fzf_history_opts
