@@ -2,3 +2,7 @@
 .PHONY: check
 check:
 	ansible-playbook site.yml -K --check --diff
+
+.PHONY: apply
+apply:
+	ansible-playbook site.yml -K
