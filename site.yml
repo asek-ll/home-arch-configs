@@ -1,0 +1,4 @@
+- name: Configure Arch Linux host
+  hosts: arch
+  roles:
+    - base

@@ -1,0 +1,28 @@
+- name: Install packages
+  become: true
+  community.general.pacman:
+    name: "{{ base_packages }}"
+    state: present
+    update_cache: true
+
+# ssh-agent.service ships with openssh (/usr/lib/systemd/user/ssh-agent.service)
+# and listens on $XDG_RUNTIME_DIR/ssh-agent.socket
+- name: Enable and start ssh-agent user service
+  ansible.builtin.systemd_service:
+    name: ssh-agent.service
+    scope: user
+    enabled: true
+    state: started
+
+- name: Ensure environment.d directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.config/environment.d"
+    state: directory
+    mode: "0755"
+
+- name: Export SSH_AUTH_SOCK for the user session
+  ansible.builtin.copy:
+    dest: "{{ ansible_facts.env.HOME }}/.config/environment.d/ssh-agent.conf"
+    content: |
+      SSH_AUTH_SOCK=${XDG_RUNTIME_DIR}/ssh-agent.socket
+    mode: "0644"

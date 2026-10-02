@@ -1,0 +1,6 @@
+---
+base_packages:
+  - lf
+  - keepassxc
+  - ansible
+  - firefox
