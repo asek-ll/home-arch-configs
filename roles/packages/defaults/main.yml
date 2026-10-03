@@ -4,3 +4,8 @@ packages:
   - keepassxc
   - ansible
   - firefox
+
+aur_packages:
+  - yandex-disk
+
+aur_build_dir: "{{ ansible_facts.env.HOME }}/.cache/aur"

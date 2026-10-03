@@ -3,3 +3,37 @@
   community.general.pacman:
     name: "{{ packages }}"
     state: present
+
+# AUR packages are built with makepkg as the login user and installed with
+# pacman -U via become, so no passwordless sudo is needed for yay/makepkg.
+- name: Install AUR build tools
+  become: true
+  community.general.pacman:
+    name:
+      - base-devel
+      - git
+    state: present
+
+- name: Check installed AUR packages
+  ansible.builtin.command: pacman -Q {{ item }}
+  loop: "{{ aur_packages }}"
+  register: aur_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Report AUR packages that would be installed
+  ansible.builtin.debug:
+    msg: "Would build and install {{ item.item }} from AUR"
+  loop: "{{ aur_installed.results | rejectattr('rc', 'equalto', 0) }}"
+  loop_control:
+    label: "{{ item.item }}"
+  changed_when: true
+  when: ansible_check_mode
+
+- name: Build and install missing AUR packages
+  ansible.builtin.include_tasks: aur.yml
+  loop: "{{ aur_installed.results | rejectattr('rc', 'equalto', 0) | map(attribute='item') }}"
+  loop_control:
+    loop_var: aur_package
+  when: not ansible_check_mode

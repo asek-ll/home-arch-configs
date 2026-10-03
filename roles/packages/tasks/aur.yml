@@ -1,0 +1,37 @@
+- name: Clone {{ aur_package }} from AUR
+  ansible.builtin.git:
+    repo: "https://aur.archlinux.org/{{ aur_package }}.git"
+    dest: "{{ aur_build_dir }}/{{ aur_package }}"
+    force: true
+
+- name: Read {{ aur_package }} .SRCINFO
+  ansible.builtin.slurp:
+    src: "{{ aur_build_dir }}/{{ aur_package }}/.SRCINFO"
+  register: aur_srcinfo
+
+# makepkg can't install deps itself without interactive sudo
+- name: Install {{ aur_package }} repo dependencies
+  become: true
+  community.general.pacman:
+    name: >-
+      {{ aur_srcinfo.content | b64decode
+         | regex_findall('(?m)^\s*(?:make|check)?depends(?:_x86_64)? = ([^<>=\s]+)') | unique }}
+    state: present
+
+- name: Build {{ aur_package }}
+  ansible.builtin.command: makepkg -f --noconfirm
+  args:
+    chdir: "{{ aur_build_dir }}/{{ aur_package }}"
+
+- name: List {{ aur_package }} built package files
+  ansible.builtin.command: makepkg --packagelist
+  args:
+    chdir: "{{ aur_build_dir }}/{{ aur_package }}"
+  register: aur_pkglist
+  changed_when: false
+
+- name: Install {{ aur_package }}
+  become: true
+  community.general.pacman:
+    name: "{{ aur_pkglist.stdout_lines | reject('search', '-debug-') }}"
+    state: present
