@@ -1,0 +1,20 @@
+---
+# Proxy URL: type://host:port or type://host:port:username:password
+# (type is socks5 or http)
+proxybridge_proxy: socks5://100.64.0.2:1080
+
+# Routing rules, process:hosts:ports:protocol:action, e.g.
+#   - "curl;wget:*:*:TCP:PROXY"
+#   - "firefox:*:80;443:TCP:DIRECT"
+# With no rules nothing is proxied.
+proxybridge_rules: 
+  - "WoWExt.built.exe;wineserver:*:*:BOTH:PROXY"
+
+# Route all DNS queries through the proxy (independent of the rules)
+proxybridge_dns_via_proxy: false
+
+# 0 - no logs, 1 - log messages, 2 - connection events, 3 - both
+proxybridge_verbose: 1
+
+# Any other command line arguments, passed as is
+proxybridge_extra_args: []

@@ -2,10 +2,4 @@
   hosts: arch
   roles:
     - packages
-    - fish
-    - git
-    - nvim
-    - services
-    - syncthing
     - proxybridge
-    - omarchy

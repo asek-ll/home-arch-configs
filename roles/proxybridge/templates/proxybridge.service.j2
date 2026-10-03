@@ -1,0 +1,34 @@
+{% macro arg(value) -%}
+"{{ value | string | replace('\\', '\\\\') | replace('"', '\\"') | replace('%', '%%') | replace('$', '$$') }}"
+{%- endmacro %}
+[Unit]
+Description=ProxyBridge
+Documentation=file:///usr/share/doc/proxybridge/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# remove iptables rules left over from a crashed instance
+ExecStartPre=-/usr/bin/ProxyBridge --cleanup
+# ProxyBridge queues every outgoing packet but reads them into a 4K buffer, so
+# anything bigger is never released. Only loopback (mtu 65536) has such packets,
+# keep it out of the queue: ProxyBridge appends its rules, this one stays first.
+ExecStartPre=-/usr/bin/iptables -w -t mangle -D OUTPUT -o lo -j ACCEPT
+ExecStartPre=/usr/bin/iptables -w -t mangle -I OUTPUT -o lo -j ACCEPT
+# stdbuf: stdout is a pipe to the journal, without it logs show up in blocks
+ExecStart=/usr/bin/stdbuf -oL /usr/bin/ProxyBridge \
+    --proxy {{ arg(proxybridge_proxy) }} \
+{% for rule in proxybridge_rules %}
+    --rule {{ arg(rule) }} \
+{% endfor %}
+    --dns-via-proxy {{ proxybridge_dns_via_proxy | bool | lower }} \
+    --verbose {{ proxybridge_verbose | int }}{% for extra in proxybridge_extra_args %} \
+    {{ arg(extra) }}{% endfor %}
+
+ExecStopPost=-/usr/bin/ProxyBridge --cleanup
+ExecStopPost=-/usr/bin/iptables -w -t mangle -D OUTPUT -o lo -j ACCEPT
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

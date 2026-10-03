@@ -7,5 +7,6 @@ packages:
 
 aur_packages:
   - yandex-disk
+  - proxybridge-git
 
 aur_build_dir: "{{ ansible_facts.env.HOME }}/.cache/aur"
