@@ -1,0 +1,7 @@
+---
+# LAN subnet allowed to reach syncthing directly (sync and local discovery)
+syncthing_lan_subnet: 192.168.1.0/24
+
+# Tailscale interface allowed to reach syncthing directly (sync only,
+# broadcast discovery does not travel over tailscale)
+syncthing_tailscale_interface: tailscale0

@@ -14,3 +14,33 @@
     state: started
   # in check mode the unit does not exist until the package is really installed
   when: not (ansible_check_mode and syncthing_pkg is changed)
+
+# The GUI stays on 127.0.0.1:8384, only sync and discovery are opened.
+# Without these rules peers can still connect, but only through a relay.
+- name: Allow syncthing sync from LAN
+  become: true
+  community.general.ufw:
+    rule: allow
+    direction: in
+    from_ip: "{{ syncthing_lan_subnet }}"
+    to_port: "22000"
+    comment: syncthing LAN
+
+- name: Allow syncthing local discovery from LAN
+  become: true
+  community.general.ufw:
+    rule: allow
+    direction: in
+    from_ip: "{{ syncthing_lan_subnet }}"
+    to_port: "21027"
+    proto: udp
+    comment: syncthing LAN discovery
+
+- name: Allow syncthing sync over tailscale
+  become: true
+  community.general.ufw:
+    rule: allow
+    direction: in
+    interface: "{{ syncthing_tailscale_interface }}"
+    to_port: "22000"
+    comment: syncthing tailscale
