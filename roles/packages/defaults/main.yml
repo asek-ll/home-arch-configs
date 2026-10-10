@@ -4,6 +4,7 @@ packages:
   - keepassxc
   - ansible
   - firefox
+  - rclone
 
 aur_packages:
   - yandex-disk

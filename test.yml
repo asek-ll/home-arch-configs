@@ -2,4 +2,3 @@
   hosts: arch
   roles:
     - packages
-    - proxybridge
