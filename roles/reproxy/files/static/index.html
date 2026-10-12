@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Local Network Services</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #333;
+      color: white;
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.03);
+    }
+
+    .card a {
+      text-decoration: none;
+      color: #333;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.3rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #666;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Local Network Services</h1>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <a href="https://st.sopplet.duckdns.org">
+        <h2>SyncThing</h2>
+        <p>File syncing service</p>
+      </a>
+    </div>
+    <div class="card">
+      <a href="https://plex.sopplet.duckdns.org">
+        <h2>Plex</h2>
+        <p>Media streaming server</p>
+      </a>
+    </div>
+    <div class="card">
+      <a href="https://dard.sopplet.duckdns.org/fdroid/repo/">
+        <h2>FDroid repo</h2>
+        <p>Local fdroid repository</p>
+      </a>
+    </div>
+
+    <div class="card">
+      <a href="https://dard.sopplet.duckdns.org/webcam/">
+        <h2>Web Camera</h2>
+        <p>public free</p>
+      </a>
+    </div>
+    <!-- <div class="card"> -->
+    <!--   <a href="http://192.168.1.30:3000"> -->
+    <!--     <h2>Grafana</h2> -->
+    <!--     <p>System metrics and monitoring dashboards</p> -->
+    <!--   </a> -->
+    <!-- </div> -->
+    <!-- <div class="card"> -->
+    <!--   <a href="http://192.168.1.40:9000"> -->
+    <!--     <h2>Portainer</h2> -->
+    <!--     <p>Docker container management UI</p> -->
+    <!--   </a> -->
+    <!-- </div> -->
+    <!-- <div class="card"> -->
+    <!--   <a href="http://192.168.1.60"> -->
+    <!--     <h2>Router Admin</h2> -->
+    <!--     <p>Access your router configuration</p> -->
+    <!--   </a> -->
+    <!-- </div> -->
+  </div>
+
+  <footer>
+    &copy; 2025 Local Network Dashboard
+  </footer>
+</body>
+</html>

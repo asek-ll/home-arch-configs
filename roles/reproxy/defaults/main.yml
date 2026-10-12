@@ -1,0 +1,65 @@
+---
+# Release from https://github.com/umputun/reproxy/releases, the AUR package is
+# too old for DNS challenges. Bump the checksum together with the version.
+reproxy_version: v1.7.1
+reproxy_checksum: sha256:4b8bfe2b5aed9fab15218284ed1e55f3ee459970849fe6e03bd21bb3126b6917
+reproxy_install_dir: /opt/reproxy
+
+# Runs as the login user: the proxy serves its files and reads its certificate
+reproxy_user: "{{ ansible_facts.user_id }}"
+
+# HTTPS listener. Plain HTTP is served on the same host, reproxy_http_port,
+# and only redirects to https.
+reproxy_listen: 0.0.0.0:443
+reproxy_http_port: 80
+
+# Interface 80 and 443 are opened on. The names below resolve to the
+# tailscale address, nothing is reachable from the LAN or beyond.
+reproxy_tailscale_interface: tailscale0
+
+reproxy_domain: sopplet.duckdns.org
+
+# Backends
+reproxy_static_dir: /srv/reproxy/static
+reproxy_fdroid_repo_dir: /mnt/drive/data/MyDoc/pad/apps/fdroid/repo
+reproxy_webcam_url: http://127.0.0.1:8080
+reproxy_syncthing_url: http://127.0.0.1:8384
+reproxy_plex_url: http://127.0.0.1:32400
+
+# Rendered into the reproxy file provider config. Routes of a server are
+# matched in the order given.
+reproxy_servers:
+  - server: "dard.{{ reproxy_domain }}"
+    routes:
+      - route: "/fdroid/repo$"
+        dest: "@301 https://dard.{{ reproxy_domain }}/fdroid/repo/"
+      - route: "/fdroid/repo/"
+        dest: "{{ reproxy_fdroid_repo_dir }}/"
+        assets: true
+      - route: "/webcam"
+        dest: "{{ reproxy_webcam_url }}"
+      - route: "/"
+        dest: "{{ reproxy_static_dir }}/"
+        assets: true
+  - server: "st.{{ reproxy_domain }}"
+    routes:
+      - route: "/"
+        dest: "{{ reproxy_syncthing_url }}/"
+  - server: "plex.{{ reproxy_domain }}"
+    routes:
+      - route: "/"
+        dest: "{{ reproxy_plex_url }}/"
+
+# Wildcard certificate for *.{{ reproxy_domain }}, issued by ~/projects/duckcerts.
+# Used in place: after renewing it restart reproxy.
+reproxy_ssl_cert: "{{ ansible_facts.env.HOME }}/projects/home/certs/wildcard_.{{ reproxy_domain }}.crt"
+reproxy_ssl_key: "{{ ansible_facts.env.HOME }}/projects/home/certs/wildcard_.{{ reproxy_domain }}.key"
+
+reproxy_debug: true
+
+# Any other command line arguments, passed as is
+reproxy_extra_args:
+  - --timeout.write=300s
+  - --timeout.idle=300s
+  - --timeout.dial=300s
+  - --timeout.keep-alive=300s

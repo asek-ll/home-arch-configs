@@ -1,0 +1,31 @@
+[Unit]
+Description=reproxy
+Documentation=https://reproxy.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User={{ reproxy_user }}
+# the only privilege needed is binding 80 and 443
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+NoNewPrivileges=yes
+ExecStart={{ reproxy_install_dir }}/{{ reproxy_version }}/reproxy \
+    --listen={{ reproxy_listen }} \
+    --file.enabled \
+    --file.name=/etc/reproxy/config.yaml \
+    --ssl.type=static \
+    --ssl.cert={{ reproxy_ssl_cert }} \
+    --ssl.key={{ reproxy_ssl_key }} \
+    --ssl.http-port={{ reproxy_http_port }}{{ ' \\' if reproxy_debug or reproxy_extra_args else '' }}
+{% if reproxy_debug %}
+    --dbg{{ ' \\' if reproxy_extra_args else '' }}
+{% endif %}
+{% for extra in reproxy_extra_args %}
+    {{ extra }}{{ ' \\' if not loop.last else '' }}
+{% endfor %}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -8,4 +8,5 @@
     - services
     - syncthing
     - proxybridge
+    - reproxy
     - omarchy

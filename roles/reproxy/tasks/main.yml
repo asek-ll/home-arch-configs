@@ -1,0 +1,96 @@
+- name: Create reproxy install directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ reproxy_install_dir }}/{{ reproxy_version }}"
+    state: directory
+    mode: "0755"
+
+- name: Download reproxy
+  become: true
+  ansible.builtin.get_url:
+    url: "https://github.com/umputun/reproxy/releases/download/{{ reproxy_version }}/reproxy_{{ reproxy_version }}_linux_amd64.tar.gz"
+    dest: "{{ reproxy_install_dir }}/{{ reproxy_version }}/reproxy.tar.gz"
+    checksum: "{{ reproxy_checksum }}"
+    mode: "0644"
+  register: reproxy_archive
+
+- name: Unpack reproxy
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ reproxy_install_dir }}/{{ reproxy_version }}/reproxy.tar.gz"
+    dest: "{{ reproxy_install_dir }}/{{ reproxy_version }}"
+    remote_src: true
+    include:
+      - reproxy
+    creates: "{{ reproxy_install_dir }}/{{ reproxy_version }}/reproxy"
+  # in check mode the archive does not exist until it is really downloaded
+  when: not (ansible_check_mode and reproxy_archive is changed)
+
+- name: Create reproxy config directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/reproxy
+    state: directory
+    mode: "0755"
+
+- name: Check the certificate is in place
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ reproxy_ssl_cert }}"
+    - "{{ reproxy_ssl_key }}"
+  register: reproxy_ssl_files
+  failed_when: not reproxy_ssl_files.stat.exists
+
+- name: Install reproxy routes
+  become: true
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/reproxy/config.yaml
+    mode: "0644"
+
+- name: Create reproxy static directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ reproxy_static_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install reproxy static files
+  become: true
+  ansible.builtin.copy:
+    src: static/
+    dest: "{{ reproxy_static_dir }}/"
+    mode: "0644"
+
+- name: Install reproxy system service
+  become: true
+  ansible.builtin.template:
+    src: reproxy.service.j2
+    dest: /etc/systemd/system/reproxy.service
+    mode: "0644"
+  register: reproxy_unit
+  notify: Restart reproxy
+
+- name: Enable and start reproxy system service
+  become: true
+  ansible.builtin.systemd_service:
+    name: reproxy.service
+    daemon_reload: true
+    enabled: true
+    state: started
+  # in check mode the unit does not exist until it is really installed
+  when: not (ansible_check_mode and reproxy_unit is changed)
+
+- name: Allow http and https over tailscale
+  become: true
+  community.general.ufw:
+    rule: allow
+    direction: in
+    interface: "{{ reproxy_tailscale_interface }}"
+    to_port: "{{ item }}"
+    proto: tcp
+    comment: reproxy tailscale
+  loop:
+    - "{{ reproxy_http_port }}"
+    - "{{ reproxy_listen.split(':') | last }}"

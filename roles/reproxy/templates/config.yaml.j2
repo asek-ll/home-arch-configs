@@ -1,0 +1,3 @@
+{% for item in reproxy_servers %}
+{{ {item.server: item.routes} | to_nice_yaml(indent=2, sort_keys=false) }}
+{% endfor %}
