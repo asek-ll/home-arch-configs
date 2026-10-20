@@ -1,0 +1,21 @@
+[Unit]
+Description=Herdr mobile relay
+Documentation=https://github.com/0cv/herdr-mobile-relay
+
+[Service]
+Environment="HERDR_RELAY_ENV={{ herdr_mobile_relay_env_file }}"
+# HERDR_RELAY_TOKEN
+EnvironmentFile={{ herdr_mobile_relay_env_file }}
+Environment=HERDR_RELAY_HOST={{ herdr_mobile_relay_host }}
+Environment=HERDR_RELAY_PORT={{ herdr_mobile_relay_port }}
+Environment=HERDR_REACHABILITY_PORT_MAPPING={{ herdr_mobile_relay_port_mapping | bool | ternary(1, 0) }}
+Environment=HERDR_RELAY_LOG_LEVEL={{ herdr_mobile_relay_log_level }}
+{% for name, value in herdr_mobile_relay_extra_env.items() %}
+Environment="{{ name }}={{ value }}"
+{% endfor %}
+ExecStart={{ herdr_mobile_relay_bin }}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

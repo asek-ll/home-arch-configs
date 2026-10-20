@@ -2,3 +2,4 @@
   hosts: arch
   roles:
     - reproxy
+    - herdr_mobile_relay

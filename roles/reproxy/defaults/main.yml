@@ -25,6 +25,7 @@ reproxy_fdroid_repo_dir: /mnt/drive/data/MyDoc/pad/apps/fdroid/repo
 reproxy_webcam_url: http://127.0.0.1:8080
 reproxy_syncthing_url: http://127.0.0.1:8384
 reproxy_plex_url: http://127.0.0.1:32400
+reproxy_herdr_relay_url: http://127.0.0.1:8375
 
 # Rendered into the reproxy file provider config. Routes of a server are
 # matched in the order given.
@@ -49,6 +50,10 @@ reproxy_servers:
     routes:
       - route: "/"
         dest: "{{ reproxy_plex_url }}/"
+  - server: "herdr.{{ reproxy_domain }}"
+    routes:
+      - route: "/"
+        dest: "{{ reproxy_herdr_relay_url }}/"
 
 # Wildcard certificate for *.{{ reproxy_domain }}, issued by ~/projects/duckcerts.
 # Used in place: after renewing it restart reproxy.

@@ -1,0 +1,20 @@
+---
+# herdr-mobile-relay is installed and self-updated by the herdr plugin
+# (herdr plugin install 0cv/herdr-mobile-relay), this role only runs it.
+herdr_mobile_relay_bin: "{{ ansible_facts.env.HOME }}/.local/bin/herdr-mobile-relay"
+
+# Loopback only: the phone reaches it through reproxy over tailscale, with TLS
+herdr_mobile_relay_host: 127.0.0.1
+herdr_mobile_relay_port: 8375
+
+# The plugin's own scripts (setup-link, rotate-token) read the token from here
+herdr_mobile_relay_env_file: "{{ ansible_facts.env.HOME }}/.config/herdr/plugins/config/herdr-mobile-relay.events/relay.env"
+
+# Ask the router for a UPnP / NAT-PMP / PCP mapping of the WebRTC port
+herdr_mobile_relay_port_mapping: false
+
+# debug, info, warn or error
+herdr_mobile_relay_log_level: info
+
+# Any other HERDR_* variables, passed as is
+herdr_mobile_relay_extra_env: {}
