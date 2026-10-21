@@ -1,8 +1,0 @@
-- name: Restart herdr mobile relay
-  ansible.builtin.systemd_service:
-    name: herdr-mobile-relay.service
-    scope: user
-    daemon_reload: true
-    state: restarted
-  # in check mode the unit may not exist yet
-  when: not ansible_check_mode
