@@ -1,7 +1,7 @@
 ---
 # Proxy URL: type://host:port or type://host:port:username:password
 # (type is socks5 or http)
-proxybridge_proxy: http://100.64.0.9:8080:u1:p4
+proxybridge_proxy: socks5://100.64.0.2:1080
 
 # Routing rules, process:hosts:ports:protocol:action, e.g.
 #   - "curl;wget:*:*:TCP:PROXY"
