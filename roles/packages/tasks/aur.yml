@@ -4,6 +4,14 @@
     dest: "{{ aur_build_dir }}/{{ aur_package }}"
     force: true
 
+# force: true above resets the PKGBUILD, so the pin is applied on every build
+- name: Pin {{ aur_package }} to upstream commit
+  ansible.builtin.replace:
+    path: "{{ aur_build_dir }}/{{ aur_package }}/PKGBUILD"
+    regexp: '#branch=[^"'')]+'
+    replace: "#commit={{ aur_package_commits[aur_package] }}"
+  when: aur_package in aur_package_commits
+
 - name: Read {{ aur_package }} .SRCINFO
   ansible.builtin.slurp:
     src: "{{ aur_build_dir }}/{{ aur_package }}/.SRCINFO"

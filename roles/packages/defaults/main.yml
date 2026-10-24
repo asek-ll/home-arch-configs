@@ -10,4 +10,10 @@ aur_packages:
   - yandex-disk
   - proxybridge-git
 
+# Build these AUR packages from a fixed upstream commit (VCS -git packages only).
+# A package whose installed version is not that commit gets rebuilt.
+aur_package_commits:
+  # 4.0 dropped --proxy/--rule, and its eBPF relay drops Wine's UDP (game DNS)
+  proxybridge-git: 02703a0672a8b94011a4698368a392f7734c10dc
+
 aur_build_dir: "{{ ansible_facts.env.HOME }}/.cache/aur"

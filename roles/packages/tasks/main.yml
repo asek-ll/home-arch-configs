@@ -22,10 +22,23 @@
   failed_when: false
   check_mode: false
 
+# missing, or a -git package whose installed rNNN.<hash> is not the pinned commit
+- name: Select AUR packages to build
+  ansible.builtin.set_fact:
+    aur_to_build: >-
+      {%- set out = [] -%}
+      {%- for r in aur_installed.results -%}
+      {%-   set pin = aur_package_commits[r.item] | default('') -%}
+      {%-   if r.rc != 0 or (pin and ('.' ~ pin[:7] ~ '-') not in r.stdout) -%}
+      {%-     set _ = out.append(r.item) -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ out }}
+
 - name: Report AUR packages that would be installed
   ansible.builtin.debug:
     msg: "Would build and install {{ item.item }} from AUR"
-  loop: "{{ aur_installed.results | rejectattr('rc', 'equalto', 0) }}"
+  loop: "{{ aur_installed.results | selectattr('item', 'in', aur_to_build) }}"
   loop_control:
     label: "{{ item.item }}"
   changed_when: true
@@ -33,7 +46,7 @@
 
 - name: Build and install missing AUR packages
   ansible.builtin.include_tasks: aur.yml
-  loop: "{{ aur_installed.results | rejectattr('rc', 'equalto', 0) | map(attribute='item') }}"
+  loop: "{{ aur_to_build }}"
   loop_control:
     loop_var: aur_package
   when: not ansible_check_mode
