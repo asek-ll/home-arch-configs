@@ -6,7 +6,24 @@
   failed_when: false
   check_mode: false
 
-# The package ships no unit. ProxyBridge needs root for nfqueue and iptables,
+# Since 4.0 proxies and rules come only from a .pbprofile. It may hold proxy
+# passwords, so root only, like the GUI's own /etc/proxybridge/profiles.
+- name: Create proxybridge config directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/proxybridge
+    state: directory
+    mode: "0700"
+
+- name: Install proxybridge profile
+  become: true
+  ansible.builtin.template:
+    src: proxybridge.pbprofile.j2
+    dest: "{{ proxybridge_profile_path }}"
+    mode: "0600"
+  notify: Restart proxybridge
+
+# The package ships no unit. ProxyBridge needs root for eBPF,
 # so this is a system service, not a user one.
 - name: Install proxybridge system service
   become: true

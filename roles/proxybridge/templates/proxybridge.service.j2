@@ -8,27 +8,42 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-# remove iptables rules left over from a crashed instance
-ExecStartPre=-/usr/bin/ProxyBridge --cleanup
-# ProxyBridge queues every outgoing packet but reads them into a 4K buffer, so
-# anything bigger is never released. Only loopback (mtu 65536) has such packets,
-# keep it out of the queue: ProxyBridge appends its rules, this one stays first.
-ExecStartPre=-/usr/bin/iptables -w -t mangle -D OUTPUT -o lo -j ACCEPT
-ExecStartPre=/usr/bin/iptables -w -t mangle -I OUTPUT -o lo -j ACCEPT
+# Headless CLI with a profile rendered by ansible, not the GUI daemon
+# (ProxyBridge --daemon). The eBPF hooks go away with the process, so there is
+# nothing to clean up on stop.
 # stdbuf: stdout is a pipe to the journal, without it logs show up in blocks
 ExecStart=/usr/bin/stdbuf -oL /usr/bin/ProxyBridge \
-    --proxy {{ arg(proxybridge_proxy) }} \
-{% for rule in proxybridge_rules %}
-    --rule {{ arg(rule) }} \
-{% endfor %}
-    --dns-via-proxy {{ proxybridge_dns_via_proxy | bool | lower }} \
+    --profile {{ arg(proxybridge_profile_path) }} \
     --verbose {{ proxybridge_verbose | int }}{% for extra in proxybridge_extra_args %} \
     {{ arg(extra) }}{% endfor %}
 
-ExecStopPost=-/usr/bin/ProxyBridge --cleanup
-ExecStopPost=-/usr/bin/iptables -w -t mangle -D OUTPUT -o lo -j ACCEPT
 Restart=on-failure
 RestartSec=5
+LimitNOFILE=1048576
+
+# sandbox from the upstream unit (ProxyBridge --print-unit)
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+PrivateDevices=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+SystemCallArchitectures=native
+MemoryDenyWriteExecute=yes
+UMask=0077
+MemoryMax=1G
+TasksMax=512
+CapabilityBoundingSet=CAP_BPF CAP_PERFMON CAP_NET_ADMIN CAP_SYS_ADMIN CAP_SYS_RESOURCE CAP_SYS_PTRACE CAP_DAC_READ_SEARCH
 
 [Install]
 WantedBy=multi-user.target
